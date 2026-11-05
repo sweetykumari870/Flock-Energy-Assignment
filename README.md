@@ -1,229 +1,218 @@
-# Household Energy Consumption Analysis and Washing Machine Energy Prediction
+# Flock Energy Assignment
+
+## Household Electricity Consumption Analysis and Washing Machine Energy Prediction
 
 ## 1. Project Overview
 
-This project focuses on analysing household electricity consumption and estimating washing machine energy usage using machine learning.
+This project focuses on analyzing household electricity consumption data and predicting washing machine energy consumption using Machine Learning techniques.
 
-The project uses the REFIT Electrical Load Measurements dataset, which contains electricity consumption readings from different household appliances.
+The project uses the REFIT Electrical Load Measurements dataset to understand household energy usage patterns, identify appliance-level consumption trends, and develop a machine learning model for washing machine energy prediction.
 
-The main objective is to understand household energy usage patterns, analyse washing machine consumption, and develop a machine learning model to estimate washing machine power consumption.
+The main objective is to analyze electricity consumption, understand energy usage behavior, and explore opportunities for improving household energy efficiency.
 
 ## 2. Project Objectives
 
-* Analyse household electricity consumption.
+* Analyze household electricity consumption patterns.
 * Perform data cleaning and preprocessing.
-* Study washing machine usage patterns across different households.
-* Identify washing machine operating cycles.
-* Perform exploratory data analysis.
-* Create meaningful features for machine learning.
-* Train a Random Forest regression model.
-* Evaluate model performance on an unseen household.
-* Generate useful visualisations and reports.
+* Identify missing values and data quality issues.
+* Perform Exploratory Data Analysis (EDA).
+* Understand washing machine energy consumption patterns.
+* Perform feature engineering.
+* Develop a machine learning model for energy prediction.
+* Evaluate model performance using standard regression metrics.
+* Generate visualizations and reports.
+* Provide recommendations for improving energy efficiency.
 
-## 3. Dataset
+## 3. Dataset Description
 
-The project uses the REFIT Electrical Load Measurements dataset.
+**Dataset Name:** REFIT Electrical Load Measurements
 
-Selected households:
+The REFIT dataset contains household electricity consumption measurements collected from residential buildings.
 
-* House 1
-* House 2
-* House 3
-* House 15
+It provides electricity consumption information at household and individual appliance levels.
 
-The project focuses on washing machine consumption and aggregate household electricity consumption.
+The dataset is used to analyze energy consumption patterns and understand how different appliances contribute to household electricity usage.
+
+For more information, refer to `DATA.md`.
 
 ## 4. Technologies Used
 
-* Python
-* Pandas
-* NumPy
-* Matplotlib
-* Seaborn
-* Scikit-learn
-* Joblib
-* VS Code
+| Technology   | Purpose                   |
+| ------------ | ------------------------- |
+| Python       | Programming language      |
+| Pandas       | Data manipulation         |
+| NumPy        | Numerical operations      |
+| Matplotlib   | Data visualization        |
+| Seaborn      | Statistical visualization |
+| Scikit-learn | Machine Learning          |
+| Joblib       | Model serialization       |
+| Git          | Version control           |
+| GitHub       | Project hosting           |
 
-## 5. Project Structure
+## 5. Project Workflow
+
+The project follows these major steps:
+
+1. Data Inspection – Understanding the dataset structure and available features.
+2. Data Quality Analysis – Identifying missing values and data quality issues.
+3. Data Cleaning – Handling missing values and preparing the dataset.
+4. Exploratory Data Analysis – Analyzing household and appliance-level consumption patterns.
+5. Feature Engineering – Creating useful features for machine learning.
+6. Model Training – Training a Random Forest Regression model.
+7. Model Evaluation – Evaluating prediction performance using regression metrics.
+8. Visualization – Generating graphs and reports to understand the results.
+9. Recommendations – Identifying possible improvements in energy consumption and model performance.
+
+## 6. Machine Learning Model
+
+**Model Used:** Random Forest Regression
+
+Random Forest Regression is an ensemble machine learning algorithm that combines multiple decision trees to generate predictions.
+
+It is used in this project to predict washing machine energy consumption based on the engineered input features.
+
+### Model Evaluation Metrics
+
+The model is evaluated using the following metrics:
+
+* MAE (Mean Absolute Error)
+* RMSE (Root Mean Squared Error)
+* R² Score
+
+These metrics help measure prediction errors and understand how well the model performs.
+
+## 7. Project Structure
 
 ```text
 Flock-Energy-Assignment/
 │
-├── data/
-│   ├── raw/
-│   ├── cleaned/
-│   └── processed/
-│
 ├── models/
 │   └── washing_machine_model.pkl
 │
-├── notebooks/
-│
 ├── outputs/
 │   ├── plots/
+│   │   ├── actual_predicted_scatter.png
+│   │   ├── actual_vs_predicted.png
+│   │   ├── error_distribution.png
+│   │   ├── feature_importance.png
+│   │   ├── house1_cleaned_consumption.png
+│   │   ├── house1_original_consumption.png
+│   │   ├── washing_machine_cycle_comparison.png
+│   │   ├── washing_machine_energy_comparison.png
+│   │   └── washing_machine_hourly_comparison.png
+│   │
 │   └── reports/
+│       ├── data_quality_summary.csv
+│       ├── detailed_evaluation.csv
+│       ├── feature_importance.csv
+│       ├── missing_values.csv
+│       ├── model_evaluation.csv
+│       ├── model_predictions.csv
+│       ├── numerical_statistics.csv
+│       ├── washing_machine_cycles.csv
+│       ├── washing_machine_hourly_profile.csv
+│       ├── washing_machine_household_summary.csv
+│       └── worst_prediction_cases.csv
 │
 ├── src/
+│   ├── __init__.py
 │   ├── data_cleaning.py
 │   ├── data_quality.py
-│   ├── washing_machine_eda.py
+│   ├── evaluate_model.py
 │   ├── feature_engineering.py
+│   ├── inspect_data.py
 │   ├── train_model.py
-│   └── evaluate_model.py
+│   └── washing_machine_eda.py
 │
+├── .gitignore
 ├── DATA.md
+├── README.md
 ├── RESULTS.md
 ├── Recommendation.md
-└── README.md
+└── requirements.txt
 ```
 
-## 6. Methodology
+## 8. Installation and Setup
 
-### Step 1: Data Quality Analysis
+Follow these steps to run the project on your local system.
 
-Checked missing values, numerical statistics, duplicate records, and general data quality.
-
-### Step 2: Data Cleaning
-
-Prepared the household electricity readings, handled timestamps, and resampled House 1 data to one-minute intervals.
-
-### Step 3: Exploratory Data Analysis
-
-Analysed washing machine consumption, operating cycles, household differences, and hourly usage patterns.
-
-### Step 4: Feature Engineering
-
-Created time-based features, lag features, and rolling statistical features using aggregate electricity consumption.
-
-### Step 5: Model Training
-
-Developed a Random Forest regression model.
-
-Training households:
-
-* House 1
-* House 2
-* House 3
-
-Testing household:
-
-* House 15
-
-### Step 6: Model Evaluation
-
-Evaluated the model using MAE, RMSE, and R² score. Its performance was also compared with a zero-prediction baseline.
-
-## 7. Model Results
-
-| Metric             |   Result |
-| ------------------ | -------: |
-| Overall MAE        |  15.80 W |
-| Overall RMSE       | 140.19 W |
-| R² Score           |    0.323 |
-| Active-period MAE  | 437.07 W |
-| Active-period RMSE | 782.61 W |
-| Baseline MAE       |  17.15 W |
-| Baseline RMSE      | 171.20 W |
-
-The model performed better than the zero-prediction baseline in overall MAE and RMSE.
-
-However, active-period prediction errors remain high, indicating scope for further improvement.
-
-## 8. Generated Outputs
-
-### Reports
-
-* Data quality summary
-* Missing values report
-* Numerical statistics
-* Washing machine household summary
-* Washing machine cycle analysis
-* Model evaluation
-* Feature importance
-* Detailed evaluation
-* Worst prediction cases
-
-### Visualisations
-
-* Original and cleaned household consumption
-* Washing machine hourly comparison
-* Washing machine cycle comparison
-* Washing machine energy comparison
-* Actual vs predicted consumption
-* Error distribution
-* Feature importance
-* Actual vs predicted scatter plot
-
-All generated reports are saved in `outputs/reports/`.
-
-All generated plots are saved in `outputs/plots/`.
-
-## 9. Installation and Setup
-
-Clone or download the project repository.
-
-Create a virtual environment:
+### Step 1: Clone the Repository
 
 ```bash
+git clone https://github.com/sweetykumari870/Flock-Energy-Assignment.git
+```
+
+### Step 2: Navigate to the Project Directory
+
+```bash
+cd Flock-Energy-Assignment
+```
+
+### Step 3: Create Virtual Environment
+
+```powershell
 python -m venv venv
 ```
 
-Activate the environment on Windows:
+### Step 4: Activate Virtual Environment
 
-```bash
-venv\Scripts\activate
+For Windows PowerShell:
+
+```powershell
+.\venv\Scripts\Activate.ps1
 ```
 
-Install the required libraries:
+### Step 5: Install Dependencies
 
 ```bash
-pip install pandas numpy matplotlib seaborn scikit-learn joblib
+pip install -r requirements.txt
 ```
 
-## 10. How to Run
+## 9. How to Run
 
 Run the project scripts from the root project directory.
 
-Example:
+Execute the scripts in the following order:
 
 ```bash
+python src/inspect_data.py
+
 python src/data_quality.py
+
 python src/data_cleaning.py
+
 python src/washing_machine_eda.py
+
 python src/feature_engineering.py
+
 python src/train_model.py
+
 python src/evaluate_model.py
 ```
 
-Make sure the dataset is placed in the expected folders and the paths in the scripts match your local project structure before running them.
+**Note:** Make sure the REFIT dataset is downloaded and placed in the expected directory. Check the dataset paths configured in the Python scripts before executing them.
 
-## 11. Recommendations
+The trained model and generated outputs are saved in their respective directories according to the project configuration.
 
-* Collect more household electricity consumption data.
-* Improve active washing machine consumption prediction.
-* Experiment with additional machine learning algorithms.
-* Perform further feature selection and hyperparameter tuning.
-* Validate the model on more unseen households.
-* Explore practical household energy-saving strategies.
+## 10. Results and Evaluation
 
-For more details, refer to `Recommendation.md`.
+The Random Forest Regression model was evaluated using different regression metrics.
 
-## 12. Documentation
+### Overall Model Performance
 
-* `DATA.md` – Dataset information and preprocessing.
-* `RESULTS.md` – Analysis findings and model evaluation.
-* `Recommendation.md` – Recommendations and project limitations.
+| Evaluation Metric |   Result |
+| ----------------- | -------: |
+| MAE               |  15.80 W |
+| RMSE              | 140.19 W |
+| R² Score          |    0.323 |
 
-## 13. Conclusion
+### Active Consumption Performance
 
-This project demonstrates a complete workflow for household electricity consumption analysis and washing machine energy prediction.
+| Evaluation Metric |   Result |
+| ----------------- | -------: |
+| Active MAE        | 437.07 W |
+| Active RMSE       | 782.61 W |
 
-It combines data preprocessing, exploratory analysis, feature engineering, machine learning, and model evaluation to understand appliance-level energy consumption.
+The results indicate that the model has scope for improvement, particularly in predicting active washing machine energy consumption.
 
-The results provide a foundation for further research and improvement in household energy monitoring.
-
----
-
-**Project:** Flock Energy Assignment
-**Model:** Random Forest Regression
-**Dataset:** REFIT Electrical Load Measurements
+Detailed evaluation results

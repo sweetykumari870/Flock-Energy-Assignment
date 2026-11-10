@@ -1,46 +1,55 @@
-# Python cache files
+# ============================================================
+# Python
+# ============================================================
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
 
-# Virtual environment
+# ============================================================
+# Virtual Environment
+# ============================================================
 venv/
 .venv/
+env/
+ENV/
 
-# Jupyter temporary files
+# ============================================================
+# Jupyter Notebooks
+# ============================================================
 .ipynb_checkpoints/
+*.ipynb~
 
-# VS Code settings
-.vscode/
-
-# Operating system files
-.DS_Store
-Thumbs.db
-
-# Temporary files
-*.log
-# Large dataset files - do not upload to GitHub
+# ============================================================
+# Large Dataset Files — NOT uploaded to GitHub
+# (Download instructions in DATA.md)
+# ============================================================
 data/raw/
 data/cleaned/
 data/processed/
 
-# Python cache
-__pycache__/
-*.py[cod]
-
-# Virtual environment
-venv/
-.venv/
-
-# Jupyter temporary files
-.ipynb_checkpoints/
-
-# VS Code settings
+# ============================================================
+# IDE & Editor Settings
+# ============================================================
 .vscode/
+.idea/
+*.code-workspace
 
-# Operating system files
+# ============================================================
+# Operating System Files
+# ============================================================
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Temporary files
+# ============================================================
+# Logs & Temp Files
+# ============================================================
 *.log
+*.tmp
+*.bak

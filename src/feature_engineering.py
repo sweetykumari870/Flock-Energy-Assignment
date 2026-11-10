@@ -24,6 +24,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # =====================================
 # HOUSEHOLD MAPPING
+# Houses and the column name for their washing machine
 # =====================================
 
 HOUSE_MAPPING = {
@@ -39,6 +40,17 @@ HOUSE_MAPPING = {
 # =====================================
 
 def load_house_data(house, appliance):
+    """Load one household's cleaned CSV and engineer features.
+
+    Parameters
+    ----------
+    house : int   House number (must exist in CLEAN_DIR)
+    appliance : str  Column name of the washing machine in that CSV
+
+    Returns
+    -------
+    pd.DataFrame resampled to 1-minute resolution with Washing_Machine column
+    """
 
     pattern = os.path.join(
         CLEAN_DIR,
@@ -53,7 +65,18 @@ def load_house_data(house, appliance):
 
     if not files:
         raise FileNotFoundError(
-            f"House {house} not found"
+            f"House {house} CSV not found under {CLEAN_DIR}."
+        )
+
+    # Bug fix: validate that required columns exist before reading
+    # (peek at column names with nrows=0 first)
+    probe = pd.read_csv(files[0], nrows=0)
+    required_cols = ["Time", "Aggregate", appliance]
+    missing_cols = [c for c in required_cols if c not in probe.columns]
+    if missing_cols:
+        raise ValueError(
+            f"House {house} CSV is missing required columns: {missing_cols}. "
+            f"Available columns: {probe.columns.tolist()}"
         )
 
     df = pd.read_csv(
@@ -99,6 +122,7 @@ def load_house_data(house, appliance):
 # =====================================
 
 def create_features(df, house):
+    """Create time-based, lag, and rolling features for ML."""
 
     data = df.copy()
 
@@ -107,7 +131,7 @@ def create_features(df, house):
 
     data["DayOfWeek"] = data.index.dayofweek
 
-    # Cyclical time features
+    # Cyclical time features (avoid discontinuity at midnight/week boundary)
     data["Hour_Sin"] = np.sin(
         2 * np.pi * data["Hour"] / 24
     )
@@ -163,7 +187,7 @@ def create_features(df, house):
     # Add household identifier
     data["House"] = house
 
-    # Remove rows with missing required values
+    # Remove rows with any missing required values
     data = data.dropna()
 
     return data
@@ -199,7 +223,7 @@ def main():
 
         all_data.append(features)
 
-    # Combine households
+    # Combine all households
     final_data = pd.concat(
         all_data,
         axis=0

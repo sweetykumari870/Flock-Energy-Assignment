@@ -34,6 +34,7 @@ os.makedirs(REPORT_DIR, exist_ok=True)
 
 # ==========================================
 # HOUSEHOLD AND APPLIANCE MAPPING
+# Houses and the column name for their washing machine
 # ==========================================
 
 HOUSE_MAPPING = {
@@ -43,10 +44,10 @@ HOUSE_MAPPING = {
     15: "Appliance3"
 }
 
-# Initial cycle detection rules
-POWER_THRESHOLD = 10       # Watts
-MIN_DURATION = 5           # Minutes
-MAX_GAP = 2                 # Minutes
+# Cycle detection rules
+POWER_THRESHOLD = 10       # Watts — below this the machine is considered OFF
+MIN_DURATION = 5           # Minimum minutes for a valid wash cycle
+MAX_GAP = 2                # Maximum OFF minutes to bridge between ON periods
 
 
 # ==========================================
@@ -54,6 +55,15 @@ MAX_GAP = 2                 # Minutes
 # ==========================================
 
 def load_house_data(house_number):
+    """Load and resample one household's data to 1-minute intervals.
+
+    Returns
+    -------
+    df : pd.DataFrame  with columns [Aggregate, Washing_Machine]
+    appliance_col : str  original appliance column name from the CSV
+    """
+
+    appliance_col = HOUSE_MAPPING[house_number]
 
     pattern = os.path.join(
         CLEAN_DIR,
@@ -65,10 +75,20 @@ def load_house_data(house_number):
 
     if not files:
         raise FileNotFoundError(
-            f"Cleaned House {house_number} CSV not found"
+            f"Cleaned House {house_number} CSV not found "
+            f"under {CLEAN_DIR}."
         )
 
     df = pd.read_csv(files[0])
+
+    # Validate that the required columns exist before proceeding
+    required = ["Time", "Aggregate", appliance_col]
+    missing_cols = [c for c in required if c not in df.columns]
+    if missing_cols:
+        raise ValueError(
+            f"House {house_number} CSV is missing columns: {missing_cols}. "
+            f"Available columns: {df.columns.tolist()}"
+        )
 
     df["Time"] = pd.to_datetime(
         df["Time"],
@@ -86,39 +106,33 @@ def load_house_data(house_number):
 
     df = df.set_index("Time")
 
-    appliance = HOUSE_MAPPING[house_number]
+    df[["Aggregate", appliance_col]] = df[
+        ["Aggregate", appliance_col]
+    ].apply(pd.to_numeric, errors="coerce")
 
-    required_columns = ["Aggregate", appliance]
+    # Resample to one-minute average power
+    df = df[["Aggregate", appliance_col]].resample("1min").mean()
 
-    for col in required_columns:
-        if col not in df.columns:
-            raise ValueError(
-                f"{col} missing in House {house_number}"
-            )
+    # Rename to a consistent column name so downstream code is not
+    # fragile to the original appliance column name.
+    df = df.rename(columns={appliance_col: "Washing_Machine"})
 
-    df[required_columns] = df[required_columns].apply(
-        pd.to_numeric,
-        errors="coerce"
-    )
-
-    # One-minute average power
-    df = df[required_columns].resample("1min").mean()
-
-    return df, appliance
+    return df, appliance_col
 
 
 # ==========================================
 # DETECT WASHING MACHINE CYCLES
 # ==========================================
 
-def detect_cycles(df, appliance):
+def detect_cycles(df):
+    """Detect washing machine ON cycles from the Washing_Machine column."""
 
-    power = df[appliance]
+    power = df["Washing_Machine"]
 
-    # Washing machine ON/OFF status
+    # ON/OFF status per minute
     is_on = power > POWER_THRESHOLD
 
-    # Merge short OFF gaps
+    # Identify contiguous run groups
     group_id = is_on.ne(is_on.shift()).cumsum()
 
     runs = []
@@ -132,19 +146,19 @@ def detect_cycles(df, appliance):
             "duration": len(group)
         })
 
-    # Fill short OFF gaps between ON periods
+    # Fill short OFF gaps between ON periods (bridge gaps <= MAX_GAP minutes)
     for i in range(1, len(runs) - 1):
 
         if (
             not runs[i]["state"]
-            and runs[i-1]["state"]
-            and runs[i+1]["state"]
+            and runs[i - 1]["state"]
+            and runs[i + 1]["state"]
             and runs[i]["duration"] <= MAX_GAP
         ):
 
             runs[i]["state"] = True
 
-    # Extract cycles
+    # Extract valid cycles (must be ON and long enough)
     cycles = []
 
     for run in runs:
@@ -158,7 +172,7 @@ def detect_cycles(df, appliance):
             duration = len(cycle_data)
 
             energy_kwh = (
-                cycle_data.fillna(0).sum() * 60 / 3600000
+                cycle_data.fillna(0).sum() * 60 / 3_600_000
             )
 
             cycles.append({
@@ -194,18 +208,20 @@ def main():
 
     hourly_profiles = []
 
-    for house, appliance in HOUSE_MAPPING.items():
+    for house, appliance_original in HOUSE_MAPPING.items():
 
         print("\n" + "=" * 50)
 
         print(f"ANALYSING HOUSE {house}")
 
-        df, appliance = load_house_data(house)
+        # Bug fix: use a distinct variable name for the return value so the
+        # loop variable `appliance_original` is never accidentally overwritten.
+        df, appliance_col = load_house_data(house)
 
         print("Dataset loaded:", df.shape)
 
-        # Detect cycles
-        cycles = detect_cycles(df, appliance)
+        # Detect cycles using the unified "Washing_Machine" column
+        cycles = detect_cycles(df)
 
         print("Washing machine cycles:", len(cycles))
 
@@ -215,9 +231,9 @@ def main():
 
             all_cycles.append(cycles)
 
-        # Hourly consumption profile
+        # Hourly consumption profile — use the renamed column "Washing_Machine"
         hourly = df[
-            ["Aggregate", appliance]
+            ["Aggregate", "Washing_Machine"]
         ].groupby(
             df.index.hour
         ).mean()
@@ -311,15 +327,11 @@ def main():
     )
 
     # ======================================
-    # GRAPH 1: 24-HOUR USAGE
+    # GRAPH 1: 24-HOUR USAGE PROFILE
+    # Bug fix: use "Washing_Machine" column name (consistent),
+    # not .iloc[:, 1] (fragile positional indexing).
+    # Removed the dead `if False else None` block entirely.
     # ======================================
-
-    hourly_average = hourly_df.groupby(
-        "Hour"
-    )[[
-        "Aggregate",
-        "Appliance5"
-    ]].mean() if False else None
 
     plt.figure(figsize=(12, 6))
 
@@ -331,7 +343,7 @@ def main():
 
         plt.plot(
             house_data["Hour"],
-            house_data.iloc[:, 1],
+            house_data["Washing_Machine"],   # named column — not positional
             marker="o",
             label=f"House {house}"
         )
@@ -360,7 +372,7 @@ def main():
     plt.close()
 
     # ======================================
-    # GRAPH 2: HOUSEHOLD COMPARISON
+    # GRAPH 2: HOUSEHOLD CYCLE COUNT COMPARISON
     # ======================================
 
     plt.figure(figsize=(10, 6))
@@ -388,7 +400,7 @@ def main():
     plt.close()
 
     # ======================================
-    # GRAPH 3: ENERGY COMPARISON
+    # GRAPH 3: TOTAL ENERGY COMPARISON
     # ======================================
 
     plt.figure(figsize=(10, 6))

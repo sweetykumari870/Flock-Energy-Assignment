@@ -18,44 +18,49 @@ REPORT_DIR = os.path.join(
 os.makedirs(REPORT_DIR, exist_ok=True)
 
 
-def find_house1_file():
+def find_house1_parts():
+    """Find all CSV files for House 1 (Part1, Part2, etc.)."""
 
     files = glob.glob(
         os.path.join(RAW_DIR, "**", "*.csv"),
         recursive=True
     )
 
-    print("\nCSV files found:")
+    print("\nAll CSV files found:")
 
     for file in files:
         print(os.path.basename(file))
 
-    house1_files = [
+    # Match both RAW_House1_Part1 and RAW_House1_Part2 patterns
+    house1_files = sorted([
         file for file in files
         if "house1" in os.path.basename(file).lower()
         or "house_1" in os.path.basename(file).lower()
-        or "house 1" in os.path.basename(file).lower()
-    ]
+    ])
 
     if not house1_files:
         raise FileNotFoundError(
-            "House 1 CSV not found. Check the filenames."
+            "House 1 CSV files not found. "
+            "Check that RAW_House1_Part1.csv and RAW_House1_Part2.csv "
+            "exist under data/raw/."
         )
 
-    return house1_files[0]
+    return house1_files
 
 
 def analyse_data():
 
     print("\nFLOCK ENERGY - DATA QUALITY ANALYSIS")
 
-    # Find House 1
-    file_path = find_house1_file()
+    # Bug fix: load ALL parts of House 1 and concatenate
+    house_files = find_house1_parts()
 
-    print("\nSelected file:", file_path)
+    print(f"\nLoading {len(house_files)} file(s) for House 1:")
+    for f in house_files:
+        print("  -", os.path.basename(f))
 
-    # Load complete dataset
-    df = pd.read_csv(file_path)
+    parts = [pd.read_csv(f) for f in house_files]
+    df = pd.concat(parts, ignore_index=True)
 
     print("\nDataset loaded successfully!")
 
@@ -70,6 +75,7 @@ def analyse_data():
     invalid_timestamps = df["Time"].isna().sum()
 
     # 2. Timestamp ordering
+    df = df.sort_values("Time")
     is_sorted = df["Time"].is_monotonic_increasing
 
     # 3. Duplicate timestamps
@@ -184,4 +190,3 @@ def analyse_data():
 if __name__ == "__main__":
 
     analyse_data()
-

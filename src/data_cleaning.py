@@ -23,38 +23,48 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(PLOT_DIR, exist_ok=True)
 
 
-# STEP 1: Find House 1 CSV
-def find_house1():
+# STEP 1: Find ALL House 1 CSV parts
+def find_house1_parts():
+    """Find all CSV files for House 1 (Part1, Part2, etc.)."""
 
     files = glob.glob(
         os.path.join(RAW_DIR, "**", "*.csv"),
         recursive=True
     )
 
-    house_files = [
+    # Match both RAW_House1_Part1 and RAW_House1_Part2 patterns
+    house_files = sorted([
         f for f in files
         if "house1" in os.path.basename(f).lower()
         or "house_1" in os.path.basename(f).lower()
-    ]
+    ])
 
     if not house_files:
         raise FileNotFoundError(
-            "House 1 CSV file not found!"
+            "House 1 CSV files not found! "
+            "Check that RAW_House1_Part1.csv and RAW_House1_Part2.csv "
+            "exist under data/raw/."
         )
 
-    return house_files[0]
+    print(f"\nFound {len(house_files)} file(s) for House 1:")
+    for f in house_files:
+        print("  -", os.path.basename(f))
+
+    return house_files
 
 
-# STEP 2: Load Dataset
+# STEP 2: Load and concatenate all parts, then clean
 def clean_data():
 
     print("\n========== DATA CLEANING ==========")
 
-    file_path = find_house1()
+    # Bug fix: load ALL parts of House 1 and concatenate them
+    house_files = find_house1_parts()
 
-    df = pd.read_csv(file_path)
+    parts = [pd.read_csv(f) for f in house_files]
+    df = pd.concat(parts, ignore_index=True)
 
-    print("\nOriginal dataset shape:", df.shape)
+    print(f"\nLoaded {len(house_files)} file(s), combined shape: {df.shape}")
 
     # STEP 3: Convert timestamp
     df["Time"] = pd.to_datetime(
@@ -170,4 +180,3 @@ def clean_data():
 if __name__ == "__main__":
 
     clean_data()
-
